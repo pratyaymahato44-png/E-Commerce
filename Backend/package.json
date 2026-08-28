@@ -1,0 +1,42 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "E commerse backend javascript nodejs",
+  "keywords": [
+    "backend",
+    "javascipt"
+  ],
+  "license": "ISC",
+  "author": "Pratyay Mahato",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch ./src/index.ts",
+    "build": "tsc",
+    "start": "node ./dist/index.js"
+  },
+  "dependencies": {
+    "@clerk/backend": "^3.16.12",
+    "@clerk/express": "^2.1.63",
+    "@imagekit/nodejs": "^7.11.0",
+    "@sentry/node": "^10.71.0",
+    "@sentry/profiling-node": "^10.71.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "express": "^5.2.1",
+    "pg": "^8.23.0",
+    "standardwebhooks": "^1.0.0",
+    "stream-chat": "^9.51.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.4.0",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}
