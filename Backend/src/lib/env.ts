@@ -1,0 +1,54 @@
+import {z} from "zod"
+
+const envSchema = z.object({
+    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    PORT: z.coerce.number().default(8000),
+    DATABASE_URL: z.string().min(2),
+
+    CLERK_PUBLISHABLE_KEY: z.string().min(2),
+    CLERK_SECRET_KEY: z.string().min(2),
+    CLERK_WEBHOOK_SECRET: z.string().optional(),
+
+    CORS_ORIGIN: z.url(),
+
+    POLAR_ACCESS_TOKEN: z.string().optional(),
+    POLAR_WEBHOOK_SECRET: z.string().optional(),
+    POLAR_API_BASE: z.url().default("https://api.polar.sh"),
+
+    // fix this later to be uuid()
+    POLAR_CHECKOUT_PRODUCT_ID: z.string(),
+
+    STREAM_API_KEY: z.string().min(2),
+    STREAM_API_SECRET: z.string().min(2),
+
+    IMAGEKIT_PUBLIC_KEY: z.string().min(2),
+    IMAGEKIT_PRIVATE_KEY: z.string().min(2),
+    IMAGEKIT_URL_ENDPOINT: z.url(),
+
+    SENTRY_DSN: z.url().optional()
+
+})
+
+export type Env = z.infer<typeof envSchema>
+
+export function loadEnv(){
+    const parsed = envSchema.safeParse(process.env)
+
+    if(!parsed.success){
+
+        console.log(parsed.error.flatten().fieldErrors)
+        throw new Error("Invalid environment variables")
+    }
+
+    return parsed.data
+}
+
+let cachedEnv: Env | null = null
+
+export function getEnv(){
+    if(!cachedEnv){
+        cachedEnv = loadEnv()
+    }
+
+    return cachedEnv
+}
