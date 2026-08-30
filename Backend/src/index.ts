@@ -3,6 +3,7 @@ import express from "express"
 import cors from "cors"
 import {clerkMiddleware} from "@clerk/express"
 import { clerkWebHookHandler } from "./webhooks/clerk.js"
+import { polarWebhookHandler } from "./webhooks/polar.js"
 import { getEnv } from "./lib/env.js"
 import fs from "node:fs"
 import path from "node:path"
@@ -18,9 +19,9 @@ app.post("/webhooks/clerk", rawJson, (req, res) => {
     void clerkWebHookHandler(req, res)
 })
 
-// app.post("/webhooks/polar", rawJson, (req, res) => {
-//     void clerkWebHookHandler(req, res)
-// })
+app.post("/webhooks/polar", rawJson, (req, res) => {
+    void polarWebhookHandler(req, res)
+})
 
 
 const publicDir = path.join(process.cwd(), "public")
