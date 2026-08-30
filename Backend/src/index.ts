@@ -48,6 +48,15 @@ app.get("/health", (_, res) => {
     res.json({ok: true})
 })
 
+//import router here
+import getUser from "./routes/user.router.js"
+import getProduct from "./routes/product.router.js"
+import streamRouter from "./routes/stream.router.js"
+
+app.use("/api/get-user", getUser)
+app.use("/api/products", getProduct)
+app.use("/api/stream", streamRouter)
+
 
 app.listen(env.PORT, () => {
     console.log("server is running on Port:", env.PORT);
