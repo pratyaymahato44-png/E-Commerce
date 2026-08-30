@@ -6,6 +6,7 @@ import { clerkWebHookHandler } from "./webhooks/clerk.js"
 import { getEnv } from "./lib/env.js"
 import fs from "node:fs"
 import path from "node:path"
+import keepAliveCron from "./lib/cron.js"
 
 const env = getEnv()
 const app = express()
@@ -43,8 +44,15 @@ app.use(cors())
 app.use(clerkMiddleware())
 
 
+app.get("/health", (_, res) => {
+    res.json({ok: true})
+})
+
 
 app.listen(env.PORT, () => {
     console.log("server is running on Port:", env.PORT);
     
+    if(env.NODE_ENV === "production") {
+        keepAliveCron.start()
+    }
 })
