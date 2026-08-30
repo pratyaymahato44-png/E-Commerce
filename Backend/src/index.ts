@@ -18,6 +18,10 @@ app.post("/webhooks/clerk", rawJson, (req, res) => {
     void clerkWebHookHandler(req, res)
 })
 
+// app.post("/webhooks/polar", rawJson, (req, res) => {
+//     void clerkWebHookHandler(req, res)
+// })
+
 
 const publicDir = path.join(process.cwd(), "public")
 
@@ -44,7 +48,7 @@ app.use(cors())
 app.use(clerkMiddleware())
 
 
-app.get("/health", (_, res) => {
+app.get("/health", (_req, res) => {
     res.json({ok: true})
 })
 
@@ -52,10 +56,12 @@ app.get("/health", (_, res) => {
 import getUser from "./routes/user.router.js"
 import getProduct from "./routes/product.router.js"
 import streamRouter from "./routes/stream.router.js"
+import checkoutRouter from "./routes/chekout.router.js" 
 
 app.use("/api/get-user", getUser)
 app.use("/api/products", getProduct)
 app.use("/api/stream", streamRouter)
+app.use("api/checkout", checkoutRouter)
 
 
 app.listen(env.PORT, () => {
