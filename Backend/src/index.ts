@@ -1,5 +1,6 @@
 import "dotenv/config"
 import express from "express"
+import { Request, Response, NextFunction } from "express"
 import cors from "cors"
 import {clerkMiddleware} from "@clerk/express"
 import { clerkWebHookHandler } from "./webhooks/clerk.js"
@@ -8,6 +9,8 @@ import { getEnv } from "./lib/env.js"
 import fs from "node:fs"
 import path from "node:path"
 import keepAliveCron from "./lib/cron.js"
+import * as Sentry from "@sentry/node"
+import { sentryClerkUserMiddleware } from "./middlewares/sentryClerkUser.middleware.js"
 
 const env = getEnv()
 const app = express()
@@ -47,6 +50,7 @@ if(fs.existsSync(publicDir)){
 app.use(express.json())
 app.use(cors())
 app.use(clerkMiddleware())
+app.use(sentryClerkUserMiddleware)
 
 
 app.get("/health", (_req, res) => {
@@ -59,10 +63,24 @@ import getProduct from "./routes/product.router.js"
 import streamRouter from "./routes/stream.router.js"
 import checkoutRouter from "./routes/chekout.router.js" 
 
+
 app.use("/api/get-user", getUser)
 app.use("/api/products", getProduct)
 app.use("/api/stream", streamRouter)
 app.use("api/checkout", checkoutRouter)
+
+// sentry will be attached to the sresponse object
+Sentry.setupExpressErrorHandler(app)
+// Adding Error handler
+
+app.use((_err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    const sentryId = (res as Response & {sentry?:string}).sentry
+
+    res.status(500).json({
+        error: "internal server error",
+        ...(sentryId !== undefined && {sentryId})
+    })
+})
 
 
 app.listen(env.PORT, () => {
