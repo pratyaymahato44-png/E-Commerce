@@ -63,12 +63,14 @@ import getProduct from "./routes/product.router.js"
 import streamRouter from "./routes/stream.router.js"
 import checkoutRouter from "./routes/chekout.router.js" 
 import adminRouter from "./routes/admin.router.js"
+import orderRouter from "./routes/order.router.js"
 
 app.use("/api/get-user", getUser)
 app.use("/api/products", getProduct)
 app.use("/api/stream", streamRouter)
 app.use("api/checkout", checkoutRouter)
 app.use("/api/admin", adminRouter)
+app.use("/api/orders", orderRouter)
 
 // sentry will be attached to the sresponse object
 Sentry.setupExpressErrorHandler(app)

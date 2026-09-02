@@ -1,6 +1,7 @@
 import { StreamChat } from "stream-chat";
 import type { Env } from "./env.js";
 import type { UserRole } from "../db/schema.js";
+import { string, unknown } from "zod";
 
 export function streamChatDisplayName(
   role: UserRole,
@@ -11,6 +12,10 @@ export function streamChatDisplayName(
   if (role === "admin") return `Admin · ${base}`;
   if (role === "support") return `Support · ${base}`;
   return base;
+}
+
+type CustomChannelData = {
+  name: string
 }
 
 export function getStreamChatServer(env: Env) {

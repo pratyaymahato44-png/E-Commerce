@@ -1,5 +1,5 @@
 import { getAuth } from "@clerk/express";
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { getLocalUser } from "../lib/user.js";
 import { isAdmin } from "../lib/roles.js";
 import ImageKit from "@imagekit/nodejs";
