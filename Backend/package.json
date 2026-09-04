@@ -15,7 +15,8 @@
     "dev": "tsx watch --import ./src/instrument.ts  ./src/index.ts",
     "build": "tsc",
     "start": "node ./src/instrument.ts ./dist/index.js",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@clerk/backend": "^3.16.12",
