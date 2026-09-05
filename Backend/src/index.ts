@@ -27,25 +27,6 @@ app.post("/webhooks/polar", rawJson, (req, res) => {
 })
 
 
-const publicDir = path.join(process.cwd(), "public")
-
-if(fs.existsSync(publicDir)){
-    app.use(express.static(publicDir))
-
-    app.get("/{*splat}", (req, res, next) => {
-        if(req.method !== "GET" && req.method !== "HEAD"){
-            next()
-            return
-        }
-        if(req.path.startsWith("/api") || req.path.startsWith("/webhooks")){
-            next()
-            return
-        }
-
-        res.sendFile(path.join(publicDir, "index.html"), (err) => next(err))
-    })
-    
-}
 
 app.use(express.json())
 app.use(cors())
@@ -71,6 +52,27 @@ app.use("/api/stream", streamRouter)
 app.use("/api/checkout", checkoutRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/orders", orderRouter)
+
+const publicDir = path.join(process.cwd(), "public")
+
+if(fs.existsSync(publicDir)){
+    app.use(express.static(publicDir))
+
+    app.get("/{*splat}", (req, res, next) => {
+        if(req.method !== "GET" && req.method !== "HEAD"){
+            next()
+            return
+        }
+        if(req.path.startsWith("/api") || req.path.startsWith("/webhooks")){
+            next()
+            return
+        }
+
+        res.sendFile(path.join(publicDir, "index.html"), (err) => next(err))
+    })
+    
+}
+
 
 // sentry will be attached to the sresponse object
 Sentry.setupExpressErrorHandler(app)

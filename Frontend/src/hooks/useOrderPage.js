@@ -5,18 +5,20 @@ import { apiFetch } from "../lib/api"
 
 function useOrderPage(){
 
-    const {getToken, isSignedIn} = useAuth()
+    const {getToken, isSignedIn, isLoaded} = useAuth()
 
-    const {data, isLoading, error} = useQuery({
+    const {data, isLoading: orderLoading, error: orderError} = useQuery({
         queryKey: ["orders"],
         queryFn: () => apiFetch("/api/orders", {getToken}),
-        enabled: isSignedIn
+        enabled: isLoaded && isSignedIn === true,
+        retry: false
     })
 
-    const {data: userData} = useQuery({
+    const {data: userData, isLoading: userLoading, error: userError} = useQuery({
         queryKey: ["user"],
         queryFn: () => apiFetch("/api/get-user", {getToken}),
-        enabled: isSignedIn
+        enabled: isLoaded && isSignedIn === true,
+        retry: false
     })
 
     const isStaff = userData?.user?.role === "support" || userData?.user?.role === "admin"
@@ -24,8 +26,8 @@ function useOrderPage(){
     const orders = data?.orders ?? []
 
     return {
-        isLoading,
-        error,
+        isLoading: !isLoaded || orderLoading,
+        error: orderError,
         orders,
         isStaff
     }

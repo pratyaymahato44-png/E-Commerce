@@ -18,16 +18,17 @@ import { useCart } from "../store/cart";
 // const data = await fetch("/api/getuser")
 function Navbar() {
 
-	const { getToken, isSignedIn } = useAuth()
+	const { getToken, isSignedIn, isLoaded } = useAuth()
 	const { data: userData } = useQuery({
-		queryKey: ["getUser"],
+		queryKey: ["user"],
 		queryFn: () => apiFetch("/api/get-user", { getToken }),
-		enabled: isSignedIn
+		enabled: isLoaded && isSignedIn == true,
+		retry: false,
+		refetchOnWindowFocus: false,
+		staleTime: 1000 * 60 * 5,
 	})
 
 	const role = userData?.user?.role
-
-
 
 
 	const cartCount = useCart(s => s.items.reduce((n,line) => n + line.quantity, 0))

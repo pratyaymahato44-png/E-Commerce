@@ -1,5 +1,5 @@
 import { getAuth } from "@clerk/express"
-import type { Request, Response, NextFunction} from "express"
+import type { Request, Response, NextFunction } from "express"
 import { isStaff } from "../lib/roles.js"
 import { getLocalUser } from "../lib/user.js"
 import { db } from "../db/index.js"
@@ -11,37 +11,48 @@ import { getStreamChatServer, streamChatDisplayName, streamUserId } from "../lib
 const env = getEnv()
 
 
-const listOrders = async(req:Request, res: Response, next: NextFunction) => {
+const listOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {userId, isAuthenticated} = getAuth(req)
-        if(!userId || !isAuthenticated){
-            res.status(401).json({error: "Unauthorized Access"})
+        console.log("========== REQUEST ==========");
+console.log("URL:", req.originalUrl);
+console.log("Authorization exists:", Boolean(req.headers.authorization));
+
+        const { userId, isAuthenticated } = getAuth(req)
+
+        console.log({
+            userId: userId,
+            isAuthenticated: isAuthenticated,
+        });
+
+        if (!userId || !isAuthenticated) {
+            res.status(401).json({ error: "Unauthorized Access" })
             return
         }
+
 
         const localUser = await getLocalUser(userId)
 
-        if(!localUser){
-            res.status(503).json({error: "Account not synced yet"})
+        if (!localUser) {
+            res.status(503).json({ error: "Account not synced yet" })
             return
         }
 
-        const rows = isStaff(localUser.role)? 
+        const rows = isStaff(localUser.role) ?
             await db.select().from(orders).orderBy(desc(orders.createdAt)) :
             await db
                 .select()
                 .from(orders)
                 .where(eq(orders.userId, localUser.id))
                 .orderBy(desc(orders.createdAt))
-        
+
 
         const orderIds = rows.map((row) => row.id)
         const previewByOrder = new Map()
 
-        if(orderIds.length > 0){
+        if (orderIds.length > 0) {
             const itemRows = await db
                 .select({
-                    orderId : orderItems.orderId,
+                    orderId: orderItems.orderId,
                     quantity: orderItems.quantity,
                     name: products.name,
                     slug: products.slug,
@@ -52,8 +63,8 @@ const listOrders = async(req:Request, res: Response, next: NextFunction) => {
                 .where(inArray(orderItems.orderId, orderIds))
                 .orderBy(asc(orderItems.id))
 
-            for(const row of itemRows){
-                const list  = previewByOrder.get(row.orderId) ?? []
+            for (const row of itemRows) {
+                const list = previewByOrder.get(row.orderId) ?? []
 
                 list.push({
                     name: row.name,
@@ -61,84 +72,36 @@ const listOrders = async(req:Request, res: Response, next: NextFunction) => {
                     imageUrl: row.imageUrl,
                     quantity: row.quantity,
                 })
+                previewByOrder.set(row.orderId, list)
             }
         }
 
         const ordersPayload = rows.map((row) => ({
             ...row,
-            previewItem: previewByOrder.get(row.id) ?? []
+            previewItems: previewByOrder.get(row.id) ?? []
         }))
 
-        res.status(201).json({order: ordersPayload})
+
+        res.status(200).json({ orders: ordersPayload })
+
     } catch (error) {
         next(error)
     }
 }
 
-const getOrder = async(req: Request, res: Response, next: NextFunction) => {
-   try {
-     const {userId, isAuthenticated} = getAuth(req)
- 
-     if(!userId || !isAuthenticated) {
-         res.status(401).json({error: "Unauthorized Access"})
-         return
-     }
- 
-     const localUser = await getLocalUser(userId)
- 
-     if(!localUser){
-         res.status(503).json({error: "Account has not been synced yet"})
-         return
-     }
- 
-     const [order] = await db
-         .select()
-         .from(orders)
-         .where(eq(orders.id, req.params.id as string))
-         .limit(1)
- 
-     if(!order){
-         res.status(404).json({error: "Order not found"})
-         return
-     }
- 
-     const canAccess = order.userId === localUser.id || isStaff(localUser.role)
- 
-     if(!canAccess){
-         res.status(404).json({error: "Not found"})
-     }
- 
-     const items = await db
-         .select({
-             id: orderItems.id,
-             quantity: orderItems.quantity,
-             unitPriceCents: orderItems.unitPriceCents,
-             product: products
-         })
-         .from(orderItems)
-         .innerJoin(products, eq(orderItems.productId, products.id))
-         .where(eq(orderItems.orderId, order.id))
- 
-         res.json({order, items})
-   } catch (error) {
-        next(error)
-   }
-}
-
-const createStreamChannel = async(req: Request, res: Response, next: NextFunction) => {
+const getOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {userId, isAuthenticated} = getAuth(req)
+        const { userId, isAuthenticated } = getAuth(req)
 
-        if(!userId || !isAuthenticated){
-            res.status(401).json({error: "Unauthorized Access"})
+        if (!userId || !isAuthenticated) {
+            res.status(401).json({ error: "Unauthorized Access" })
             return
         }
 
-        const server = getStreamChatServer(env)
-
         const localUser = await getLocalUser(userId)
-        if(!localUser){
-            res.status(503).json({error: "User not foung"})
+
+        if (!localUser) {
+            res.status(503).json({ error: "Account has not been synced yet" })
             return
         }
 
@@ -148,19 +111,71 @@ const createStreamChannel = async(req: Request, res: Response, next: NextFunctio
             .where(eq(orders.id, req.params.id as string))
             .limit(1)
 
-        if(!order){
-            res.status(404).json({error: "Order not found"})
-        }    
-
-        const isOwner = order.userId === localUser.id
-
-        if(!isOwner && !isStaff(localUser.role)){
-            res.status(404).json({error: "Not found"})
+        if (!order) {
+            res.status(404).json({ error: "Order not found" })
             return
         }
 
-        if(order.status !== "paid"){
-            res.status(403).json({error: "Order must be paid to open Support chat"})
+        const canAccess = order.userId === localUser.id || isStaff(localUser.role)
+
+        if (!canAccess) {
+            res.status(404).json({ error: "Not found" })
+            return
+        }
+
+        const items = await db
+            .select({
+                id: orderItems.id,
+                quantity: orderItems.quantity,
+                unitPriceCents: orderItems.unitPriceCents,
+                product: products
+            })
+            .from(orderItems)
+            .innerJoin(products, eq(orderItems.productId, products.id))
+            .where(eq(orderItems.orderId, order.id))
+
+        res.json({ order, items })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const createStreamChannel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId, isAuthenticated } = getAuth(req)
+
+        if (!userId || !isAuthenticated) {
+            res.status(401).json({ error: "Unauthorized Access" })
+            return
+        }
+
+        const server = getStreamChatServer(env)
+
+        const localUser = await getLocalUser(userId)
+        if (!localUser) {
+            res.status(503).json({ error: "User not foung" })
+            return
+        }
+
+        const [order] = await db
+            .select()
+            .from(orders)
+            .where(eq(orders.id, req.params.id as string))
+            .limit(1)
+
+        if (!order) {
+            res.status(404).json({ error: "Order not found" })
+        }
+
+        const isOwner = order.userId === localUser.id
+
+        if (!isOwner && !isStaff(localUser.role)) {
+            res.status(404).json({ error: "Not found" })
+            return
+        }
+
+        if (order.status !== "paid") {
+            res.status(403).json({ error: "Order must be paid to open Support chat" })
             return
         }
 
@@ -169,54 +184,54 @@ const createStreamChannel = async(req: Request, res: Response, next: NextFunctio
 
         await server.upsertUser({
             id: streamChatUserId,
-            name: name,            
+            name: name,
         })
 
         const channelId = `order-${order.id}`
         const channel = server.channel("messaging", channelId, {
-            name: `Support . order ${order.id.slice(0,8)}`,
-            created_by_id: streamChatUserId,            
+            name: `Support . order ${order.id.slice(0, 8)}`,
+            created_by_id: streamChatUserId,
         })
 
         await channel.create()
 
         await channel.addMembers([streamChatUserId])
 
-        res.json({channelType: "messaging", channelId, streamUserId: streamChatUserId})
+        res.json({ channelType: "messaging", channelId, streamUserId: streamChatUserId })
     } catch (error) {
         next(error)
     }
 }
 
-const createVideoInvite = async(req: Request, res: Response, next: NextFunction) => {
+const createVideoInvite = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {userId, isAuthenticated} = getAuth(req)
+        const { userId, isAuthenticated } = getAuth(req)
 
-        if(!userId || !isAuthenticated){
-            res.status(401).json({error: "Unauthorized Access"})
+        if (!userId || !isAuthenticated) {
+            res.status(401).json({ error: "Unauthorized Access" })
             return
         }
 
         const localUser = await getLocalUser(userId)
 
-        if(!localUser){
-            res.status(503).json({error: "Account not synced yet"})
+        if (!localUser) {
+            res.status(503).json({ error: "Account not synced yet" })
             return
         }
 
-        if(!isStaff(localUser.role)){
-            res.status(403).json({error: "Only support or admin can send a video invite"})
+        if (!isStaff(localUser.role)) {
+            res.status(403).json({ error: "Only support or admin can send a video invite" })
             return
         }
 
         const [order] = await db
             .select()
             .from(orders)
-            .where(eq(orderItems.id, req.params.id as string))
+            .where(eq(orders.id, req.params.id as string))
             .limit(1)
 
-        if(!order || order.status !== "paid"){
-            res.status(401).json({error: "Order not fond or paid"})
+        if (!order || order.status !== "paid") {
+            res.status(404).json({ error: "Order not found or paid" })
             return
         }
 
@@ -244,8 +259,8 @@ const createVideoInvite = async(req: Request, res: Response, next: NextFunction)
 
         const channelId = `order-${order.id}`
 
-        const channel = server.channel("messeging", channelId, {
-            name: `support . order ${order.id.slice(0,8)}`,
+        const channel = server.channel("messaging", channelId, {
+            name: `support . order ${order.id.slice(0, 8)}`,
             created_by_id: customerId
         })
 
@@ -263,7 +278,7 @@ const createVideoInvite = async(req: Request, res: Response, next: NextFunction)
             },
         });
 
-        res.json({ok: true, joinUrl})
+        res.json({ ok: true, joinUrl })
 
     } catch (error) {
         next(error)
@@ -277,5 +292,5 @@ export {
     getOrder,
     createStreamChannel,
     createVideoInvite,
-    
+
 }

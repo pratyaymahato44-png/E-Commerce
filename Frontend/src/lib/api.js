@@ -18,7 +18,7 @@ export async function apiFetch(path, options = {}) {
   if (getToken) {
     const token = await getToken();
 
-    if (token) {
+    if (token) {      
       headers.Authorization = `Bearer ${token}`;
     }
   }

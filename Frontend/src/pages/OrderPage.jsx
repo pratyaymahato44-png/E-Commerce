@@ -11,11 +11,13 @@ function OrderPage() {
     const { isLoading, error, orders, isStaff } = useOrderPage()
 
     if (isLoading) {
+      return (
         <div className="text-left">
-            <div className="skeleton mb-2 h-10 w-64 max-w-full" />
-            <div className="skeleton mb-8 h-4 w-96 max-w-full" />
-            <OrdersListSkeleton />
+          <div className="skeleton mb-2 h-10 w-64 max-w-full" />
+          <div className="skeleton mb-8 h-4 w-96 max-w-full" />
+          <OrdersListSkeleton />
         </div>
+      )
     }
 
     if(error) {
@@ -55,38 +57,38 @@ function OrderPage() {
 
                 const summery = lineCount === 0 ? "No line items" : lineCount === 1 ? `${totalUnits} ${totalUnits === 1 ? "item" : "items"}` : `${lineCount} products - ${totalUnits} items`
                 return (
-                    <li key={o.id}>
+                    <li key={order.id}>
                 <Link
-                  to={`/orders/${o.id}`}
+                  to={`/orders/${order.id}`}
                   className="group card border border-base-300 bg-base-100 shadow-sm transition hover:border-primary/45 hover:shadow-md"
                 >
                   <div className="card-body flex-row flex-wrap items-center gap-4 py-5 sm:gap-5">
-                    <OrderPreview items={previewItems} />
+                    <OrderPreview items={previewItem} />
 
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-xs text-base-content/55 sm:text-sm">
-                          {o.id.slice(0, 8)}…
+                          {order.id.slice(0, 8)}…
                         </span>
 
                         <span
                           className={`badge badge-sm capitalize ${
-                            o.status === "paid"
+                            order.status === "paid"
                               ? "badge-success"
-                              : o.status === "pending"
+                              : order.status === "pending"
                                 ? "badge-warning"
                                 : "badge-error"
                           }`}
                         >
-                          {o.status}
+                          {order.status}
                         </span>
                       </div>
 
                       <p className="mt-1 text-sm text-base-content/60">
-                        {formatOrderWhen(o.createdAt)}
+                        {formatOrderWhen(order.createdAt)}
                       </p>
 
-                      <p className="mt-2 text-sm text-base-content/75">{summary}</p>
+                      <p className="mt-2 text-sm text-base-content/75">{summery}</p>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-3">
@@ -95,7 +97,7 @@ function OrderPage() {
                           Total
                         </p>
                         <p className="text-lg font-bold tabular-nums text-base-content sm:text-xl">
-                          {formatPrice(o.totalCents, "usd")}
+                          {formatPrice(order.totalCents, "usd")}
                         </p>
                       </div>
                       <ChevronRightIcon

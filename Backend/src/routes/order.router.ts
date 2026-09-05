@@ -6,7 +6,7 @@ const router = Router()
 router.route("/").get(listOrders)
 router.route("/:id").get(getOrder)
 router.route("/:id/stream-channel").post(createStreamChannel)
-router.route("/:id/video-inite").post(createVideoInvite)
+router.route("/:id/video-invite").post(createVideoInvite)
 
 
 export default router
