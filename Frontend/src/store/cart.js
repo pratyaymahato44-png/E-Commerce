@@ -2,7 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 export const useCart = create(
-    persist((get, set) => ({
+    persist(( set, get) => ({
             items: [],
 
             addItem(productId, quantity = 1){
@@ -27,7 +27,11 @@ export const useCart = create(
             setQuantity(productId, quantity) {
                 if(quantity <= 0){
                     set({ items: get().items.filter((item) => item.productId !== productId) })
+
+                    return
                 }
+
+                
 
                 const items = get().items.map((item) => item.productId === productId ? {...item, quantity} : item)
 

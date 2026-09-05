@@ -21,7 +21,7 @@ export function useHomeCatalog(){
         queryFn: () => apiFetch("/api/products/categories")
     })
 
-    console.log("Categories API response:", categoriesData);
+    // console.log("Categories API response:", categoriesData);
 
     const {data: productsData, isLoading: loadingList, error} = useQuery({
         queryKey: ["products", categoryFilter],

@@ -107,7 +107,7 @@ const createCheckout = async (req: Request, res: Response, next: NextFunction) =
                 success_url: successUrl,
                 return_url: returnUrl,
                 external_customer_id: userId,
-                metadata: {chechout_session_id: session.id}
+                metadata: {checkout_session_id: session.id}
             })
 
             await db.update(checkoutSession)

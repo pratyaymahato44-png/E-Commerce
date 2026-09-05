@@ -68,7 +68,7 @@ import orderRouter from "./routes/order.router.js"
 app.use("/api/get-user", getUser)
 app.use("/api/products", getProduct)
 app.use("/api/stream", streamRouter)
-app.use("api/checkout", checkoutRouter)
+app.use("/api/checkout", checkoutRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/orders", orderRouter)
 
