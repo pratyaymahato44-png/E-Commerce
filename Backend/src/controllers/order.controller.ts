@@ -13,9 +13,6 @@ const env = getEnv()
 
 const listOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log("========== REQUEST ==========");
-console.log("URL:", req.originalUrl);
-console.log("Authorization exists:", Boolean(req.headers.authorization));
 
         const { userId, isAuthenticated } = getAuth(req)
 

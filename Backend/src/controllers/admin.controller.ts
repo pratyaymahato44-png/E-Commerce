@@ -192,7 +192,7 @@ const deleteAdminProduct = async(req: Request, res: Response, next: NextFunction
  
      await db.delete(products).where(eq(products.id, id))
  
-     res.status(204).end()
+     res.status(200).json({ok: true})
    } catch (error) {
         next(error)
    }
