@@ -19,10 +19,6 @@ console.log("Authorization exists:", Boolean(req.headers.authorization));
 
         const { userId, isAuthenticated } = getAuth(req)
 
-        console.log({
-            userId: userId,
-            isAuthenticated: isAuthenticated,
-        });
 
         if (!userId || !isAuthenticated) {
             res.status(401).json({ error: "Unauthorized Access" })
