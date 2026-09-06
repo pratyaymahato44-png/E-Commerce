@@ -39,8 +39,10 @@ export function useOrderChatPage(){
             const token = await apiFetch("/api/stream/token", {method: "POST", getToken})
 
             const chatClient = StreamChat.getInstance(token.apiKey)
-
-            await chatClient.connectUser({id: token.userId, name: token.name}, token.token)
+            if(!chatClient.userID){
+                  await chatClient.connectUser({id: token.userId, name: token.name}, token.token)
+            }
+          
 
             const channel = chatClient.channel("messaging", `order-${id}`)
 
